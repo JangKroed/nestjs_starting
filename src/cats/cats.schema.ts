@@ -2,6 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Document, SchemaOptions } from 'mongoose';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
+import { Comments } from 'src/comments/comments.schema';
 
 const options: SchemaOptions = {
   timestamps: true,
@@ -46,7 +47,10 @@ export class Cat extends Document {
   @IsNotEmpty()
   password: string;
 
-  @Prop()
+  @Prop({
+    default:
+      'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSQsv_iO6XNw6WR6mP4ULxIpjRQ_Z5z1jTPOQ&usqp=CAU',
+  })
   @IsString()
   imgUrl: string;
 
@@ -54,15 +58,30 @@ export class Cat extends Document {
     id: string;
     email: string;
     name: string;
+    imgUrl: string;
   };
+
+  readonly comments: Comments[];
 }
 
-export const CatSchema = SchemaFactory.createForClass(Cat);
+const _CatSchema = SchemaFactory.createForClass(Cat);
 
-CatSchema.virtual('readOnlyData').get(function (this: Cat) {
+_CatSchema.virtual('readOnlyData').get(function (this: Cat) {
   return {
     id: this.id,
     email: this.email,
     name: this.name,
+    imgUrl: `https://nest-cat-jang.s3.ap-northeast-2.amazonaws.com/${this.imgUrl}`,
+    comments: this.comments,
   };
 });
+
+_CatSchema.virtual('comments', {
+  ref: 'comments',
+  localField: '_id',
+  foreignField: 'info',
+});
+_CatSchema.set('toObject', { virtuals: true });
+_CatSchema.set('toJSON', { virtuals: true });
+
+export const CatSchema = _CatSchema;
