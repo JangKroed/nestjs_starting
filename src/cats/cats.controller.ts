@@ -1,6 +1,7 @@
 import { HttpExceptionFilter } from 'src/common/execptions/http-exception.filter';
 import { CatsService } from './cats.service';
 import {
+  Body,
   Controller,
   Delete,
   Get,
@@ -15,46 +16,57 @@ import {
 } from '@nestjs/common';
 import { PosiviceIntPipe } from 'src/common/pipes/positiveInt.pipe';
 import { SuccessInterceptor } from 'src/common/interceptors/success.interceptor';
+import { CatRequestDto } from './dto/cats.request.dto';
+import { ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ReadOnlyCatDto } from './dto/cat.dto';
+import { AuthService } from 'src/auth/auth.service';
+import { LoginRequestDto } from 'src/auth/dto/login.request.dto';
 
 @Controller('cats')
 @UseInterceptors(SuccessInterceptor)
 @UseFilters(HttpExceptionFilter)
 export class CatsController {
-  constructor(private readonly catsService: CatsService) {}
+  constructor(
+    private readonly catsService: CatsService,
+    private readonly authService: AuthService,
+  ) {}
 
-  // cats/
+  @ApiOperation({ summary: '현재 고양이 가져오기' })
   @Get()
-  getAllCat() {
-    // throw new HttpException('api is broken', 401);
-    console.log('hello controller');
-    return { cats: 'get all cat api' };
+  getCurrentCat() {
+    return 'current cat';
   }
 
-  @Get(':id')
-  getOneCat(@Param('id', ParseIntPipe, PosiviceIntPipe) param: number) {
-    console.log(param);
-    // console.log(typeof param);
-    return 'get one cat api';
+  @ApiResponse({
+    status: 500,
+    description: 'Server Error...',
+  })
+  @ApiResponse({
+    status: 200,
+    description: '성공!',
+    type: ReadOnlyCatDto,
+  })
+  @ApiOperation({ summary: '회원가입' })
+  @Post()
+  async signUp(@Body() body: CatRequestDto) {
+    return await this.catsService.signUp(body);
   }
 
-  // cats/:id
-  @Post(':id')
-  createCat() {
-    return 'create cat api';
+  @ApiOperation({ summary: '로그인' })
+  @Post('login')
+  logIn(@Body() data: LoginRequestDto) {
+    return this.authService.jwtLogIn(data);
   }
 
-  @Put(':id')
-  updateCat() {
-    return 'update cat api';
+  @ApiOperation({ summary: '로그아웃' })
+  @Post('logout')
+  logOut() {
+    return 'logout';
   }
 
-  @Patch(':id')
-  updatePartialCat() {
-    return 'update cat api';
-  }
-
-  @Delete(':id')
-  deleteCat() {
-    return 'delete service';
+  @ApiOperation({ summary: '고양이 이미지 업로드' })
+  @Post('upload/cats')
+  uploadCatImg() {
+    return 'uploadImg';
   }
 }
