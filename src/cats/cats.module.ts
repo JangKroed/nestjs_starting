@@ -10,7 +10,6 @@ import { AuthModule } from 'src/auth/auth.module';
   imports: [
     MongooseModule.forFeature([{ name: Cat.name, schema: CatSchema }]),
     forwardRef(() => AuthModule),
-    ,
   ],
   controllers: [CatsController],
   providers: [CatsService, CatsRepository],
